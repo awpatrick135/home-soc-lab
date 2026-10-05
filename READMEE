@@ -1,0 +1,40 @@
+# Home SOC Lab: Building, Networking, and Monitoring a Windows Security Pipeline
+
+## Overview
+
+This project is a hands-on home Security Operations Center (SOC) lab. I built a multi-VM environment consisting of an attacker machine, a Windows target, and a centralized SIEM manager, configured their networking so they could talk to each other, and successfully captured live security alerts.
+
+## Lab Architecture & Networking
+
+To make this lab work, I set up a local network environment involving three virtual machines:
+* **The Attacker:** Kali Linux (used for scanning and attack simulation)
+* **The Target:** Windows Virtual Machine (the endpoint being monitored)
+* **The Shield (SIEM):** Wazuh Manager (collecting and analyzing logs)
+
+### Networking Troubleshooting & Configuration
+Before any monitoring could happen, I had to ensure the VMs could actually talk to each other. This involved:
+* Adjusting virtual network adapter settings (bridged/NAT configuration) so the machines shared a reachable subnet.
+* Troubleshooting local firewall rules and routing paths to allow traffic between the Kali attacker box, the Windows target, and the Wazuh manager.
+* Verifying connectivity using network scanning and local loop diagnostics to make sure agent telemetry packets could reach the manager without getting dropped.
+
+## What I Did (Step-by-Step)
+
+### 1. Fixing Missing Windows Services
+When I first installed the monitoring agent on the Windows target, the background service didn't show up in Windows `services.msc`. I used administrative command-line tools (`sc.exe`) to check service status, fix registration issues, and get the agent running smoothly in the background.
+
+### 2. Configuring Event Log Monitoring
+I edited the agent's configuration file (`ossec.conf`) to ensure it was actively watching the Windows `Security` event log using `eventchannel`. This told the agent to monitor every login attempt happening on the machine.
+
+### 3. Testing the System
+I ran a forced failed login test (triggering Windows Event ID 4625 / error code `1326`). I watched the agent logs (`ossec.log`) to confirm it was successfully shipping the data across the network to the server.
+
+## End Results
+
+After fixing the network routing between the VMs and sorting out the Windows service setup, the telemetry data finally hit the dashboard! I was able to see live authentication failure alerts pop up right on my Wazuh screen, proving that the end-to-end network and monitoring loop was working.
+
+## Skills Developed / Learned
+
+* **Virtual Networking:** Configuring VM network adapters and diagnosing routing/firewall issues across multiple machines.
+* **Endpoint Monitoring:** Configuring Windows log channels to track security events.
+* **Troubleshooting:** Fixing Windows service registration bugs and debugging background logs.
+* **Security Validation:** Simulating authentication failures and verifying they show up on a live dashboard.
